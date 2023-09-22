@@ -1,0 +1,158 @@
+---
+title: "[6001] - Burger_Nutrition"
+author: "T.Limsukhawat, P.Raksasin"
+date: "2023-09-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+## Import Data
+bk <- read.csv("/Users/thanyalak/Downloads/FastFood_Nutrition - Burger King_Burger.csv")
+mc <- read.csv("/Users/thanyalak/Downloads/FastFood_Nutrition - McDonald_Burger.csv")
+bg<- read.csv("/Users/thanyalak/Downloads/FastFood_Nutrition - McDonald & BurgerKing.csv")
+```
+
+```{r}
+## Import Library
+library(boot)
+```
+
+```{r}
+## Define Value for each Variables
+bk_cal <- bk$Calories
+bk_fat <- bk$Total.Fat..g.
+bk_chl <- bk$Cholesterol..mg.
+mc_cal <- mc$Calories
+mc_fat <- mc$Total.Fat..g.
+mc_chl <- mc$Cholesterol..mg.
+bg_cal <- bg$Calories
+bg_fat <- bg$Total.Fat..g.
+bg_chl <- bg$Cholesterol..mg.
+bk_n <- 29
+mc_n <- 22
+```
+
+```{r}
+## Plot Distribution
+# Boxplot
+boxplot(bk_cal, main = "bk_cal")
+boxplot(bk_fat, main = "bk_fat")
+boxplot(bk_chl, main = "bk_chl")
+boxplot(mc_cal, main = "mc_cal")
+boxplot(mc_fat, main = "mc_fat")
+boxplot(mc_chl, main = "mc_chl")
+boxplot(bg_cal, main = "bg_cal")
+boxplot(bg_fat, main = "bg_fat")
+boxplot(bg_chl, main = "bg_chl")
+
+# Histogram
+hist(bk_cal, main = "bk_cal")
+hist(bk_fat, main = "bk_fat")
+hist(bk_chl, main = "bk_chl")
+hist(mc_cal, main = "mc_cal")
+hist(mc_fat, main = "mc_fat")
+hist(mc_chl, main = "mc_chl")
+hist(bg_cal, main = "bg_cal")
+hist(bg_fat, main = "bg_fat")
+hist(bg_chl, main = "bg_chl")
+```
+
+```{r}
+## --------------------------------- Manual ------------------------------------ ##
+## Find Mean for each variable
+bk_cal_mean <- mean(bk_cal)
+bk_fat_mean <- mean(bk_fat)
+bk_chl_mean <- mean(bk_chl)
+mc_cal_mean <- mean(mc_cal)
+mc_fat_mean <- mean(mc_fat)
+mc_chl_mean <- mean(mc_chl)
+
+## Find var for each variable
+bk_cal_var <- var(bk_cal)
+bk_fat_var <- var(bk_fat)
+bk_chl_var <- var(bk_chl)
+mc_cal_var <- var(mc_cal)
+mc_fat_var <- var(mc_fat)
+mc_chl_var <- var(mc_chl)
+
+## Find cal (Calories Variable)
+cal_d <- ((((bk_cal_var)/(bk_n))+((mc_cal_var)/(mc_n)))^2)/
+  (((((bk_cal_var)/(bk_n))^2)/((bk_n)-1))+((((mc_cal_var)/(mc_n))^2)/((mc_n)-1)))
+t_table_cal <- qt(0.025,cal_d)
+
+lcl_cal <- (bk_cal_mean - mc_cal_mean) - (t_table_cal*(sqrt((bk_cal_var/bk_n)+(mc_cal_var/mc_n))))
+ucl_cal <- (bk_cal_mean - mc_cal_mean) + (t_table_cal*(sqrt((bk_cal_var/bk_n)+(mc_cal_var/mc_n))))
+
+lcl_cal
+ucl_cal
+
+## Find fat (Fat Variable)
+fat_d <- ((((bk_fat_var)/(bk_n))+((mc_fat_var)/(mc_n)))^2)/
+  (((((bk_fat_var)/(bk_n))^2)/((bk_n)-1))+((((mc_fat_var)/(mc_n))^2)/((mc_n)-1)))
+t_table_fat <- qt(0.025,fat_d)
+
+lcl_fat <- (bk_fat_mean - mc_fat_mean) - (t_table_fat*(sqrt((bk_fat_var/bk_n)+(mc_fat_var/mc_n))))
+ucl_fat <- (bk_fat_mean - mc_fat_mean) + (t_table_fat*(sqrt((bk_fat_var/bk_n)+(mc_fat_var/mc_n))))
+
+lcl_fat
+ucl_fat
+
+## Find chl (Cholesterol Variable)
+chl_d <- ((((bk_chl_var)/(bk_n))+((mc_chl_var)/(mc_n)))^2)/
+  (((((bk_chl_var)/(bk_n))^2)/((bk_n)-1))+((((mc_chl_var)/(mc_n))^2)/((mc_n)-1)))
+t_table_chl <- qt(0.025,chl_d)
+
+lcl_chl <- (bk_chl_mean - mc_chl_mean) - (t_table_chl*(sqrt((bk_chl_var/bk_n)+(mc_chl_var/mc_n))))
+ucl_chl <- (bk_chl_mean - mc_chl_mean) + (t_table_chl*(sqrt((bk_chl_var/bk_n)+(mc_chl_var/mc_n))))
+
+lcl_chl
+ucl_chl
+```
+
+```{r}
+## ---------------------------------- t-test ----------------------------------- ##
+## ttest
+t.test(bk_cal, mc_cal, conf.level = 0.95, var.equal = FALSE)
+t.test(bk_fat, mc_fat, conf.level = 0.95, var.equal = FALSE)
+t.test(bk_chl, mc_chl, conf.level = 0.95, var.equal = FALSE)
+t.test(bg_cal, conf.level = 0.95)
+t.test(bg_fat, conf.level = 0.95)
+t.test(bg_chl, conf.level = 0.95)
+```
+
+```{r}
+## ----------------------------- Re-Sampling ----------------------------------- ##
+## Performing Bootstrap re-sampling
+set.seed(100)
+mean.fun<-function(bg_cal,i)
+{m<-mean(bg_cal[i])}
+bg_cal_b <-boot(bg_cal,mean.fun,R=2000)
+bg_cal_b
+
+set.seed(100)
+mean.fun<-function(bg_fat,i)
+{m<-mean(bg_fat[i])}
+bg_fat_b <-boot(bg_fat,mean.fun,R=2000)
+bg_fat_b
+
+set.seed(100)
+mean.fun<-function(bg_chl,i)
+{m<-mean(bg_chl[i])}
+bg_chl_b <-boot(bg_chl,mean.fun,R=2000)
+bg_chl_b
+
+## Plot
+plot(bg_cal_b)
+plot(bg_fat_b)
+plot(bg_chl_b)
+
+## Find Confidence Interval of Bootstrap
+bg_cal_ci<-boot.ci(bg_cal_b,conf = 0.95,type = c("norm", "perc"))
+bg_cal_ci
+
+bg_fat_ci<-boot.ci(bg_fat_b,conf = 0.95,type = c("norm", "perc"))
+bg_fat_ci
+
+bg_chl_ci<-boot.ci(bg_chl_b,conf = 0.95,type = c("norm", "perc"))
+bg_chl_ci
+```
